@@ -61,11 +61,7 @@ _(Replace above with an uploaded PNG/SVG diagram in docs/screenshots/ when avail
 ---
 
 ## Links
-
-- [System Design Diagram (screenshots/system-design.png)](../screenshots/system-design.png)
-- [OpenAPI Specification](../../api/openapi.yaml)
-- [Product Proposal](../product/proposal.md)
-- [API Docs](../../api/openapi.yaml)
+(TBD)
 
 ---
 
