@@ -1,0 +1,65 @@
+openapi: 3.0.3
+info:
+  title: Printverse API
+  version: 1.0.0
+  description: API specification for Printverse application.
+
+paths:
+  /healthz:
+    get:
+      summary: Health check endpoint
+      responses:
+        '200':
+          description: OK
+
+  /auth/login:
+    post:
+      summary: Authenticate user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+
+  /parse:
+    post:
+      summary: Parse print command text
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                command:
+                  type: string
+      responses:
+        '200':
+          description: Parsed print configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  duplex:
+                    type: string
+                  color:
+                    type: string
+                  pages:
+                    type: string
