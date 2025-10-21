@@ -47,11 +47,9 @@ text
 
 To get started fast, run these commands from your project root:
 
-pnpm i
-cp .env.example .env
-pnpm dev
-
-text
+- pnpm i
+- cp .env.example .env
+- pnpm dev
 
 ---
 
