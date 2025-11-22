@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # name: CI Pipeline
 
 # on:
@@ -21,3 +22,6 @@
 #       - run: npm install
 #       - run: npm run lint
 #       - run: npm test -- --ci
+=======
+TBD
+>>>>>>> d0a7a22 (WIP: changes before switching to dev)

@@ -1,0 +1,31 @@
+{
+  "name": "product-team-7-cis-486",
+  "version": "1.0.0",
+  "description": "## BLUF (Bottom Line Up Front) **Printverse** is a full-stack MERN web app that lets users type simple, natural language instructions (like \"print 10 pages double-sided grayscale\") to instantly configure printer settings.   It automates tedious print configuration, reducing time-to-ready and repetitive clicks.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "start": "node src/server/index.js",
+    "dev": "nodemon src/server/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ssasaki1/PRODUCT-TEAM-7-CIS-486.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ssasaki1/PRODUCT-TEAM-7-CIS-486/issues"
+  },
+  "homepage": "https://github.com/ssasaki1/PRODUCT-TEAM-7-CIS-486#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "node-fetch": "^3.3.2",
+    "openai": "^6.8.1"
+  }
+}
