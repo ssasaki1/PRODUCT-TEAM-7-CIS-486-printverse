@@ -1,24 +1,14 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { parseInstructions } = require('../services/nlpService');
 
-router.post('/parse-instructions', async (req, res) => {
-  try {
-    const { text } = req.body;
-    if (!text || typeof text !== 'string') {
-      return res.status(400).json({ error: 'Field "text" is required.' });
-    }
+// Test route 
+router.get("/", (req, res) => {
+  res.json({ message: "Print API working 🚀" });
+});
 
-    const settings = await parseInstructions(text);
-    return res.json({
-      text,
-      settings,
-      message: 'Settings generated from instructions.',
-    });
-  } catch (error) {
-    console.error('❌ Error processing instructions:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+// Example endpoint for triggering a print (placeholder)
+router.post("/start", (req, res) => {
+  res.json({ status: "Print job received (placeholder)" });
 });
 
 module.exports = router;

@@ -14,6 +14,7 @@
       </header>
 
       <main class="main">
+        <!-- USER INPUT + BUTTONS -->
         <section class="input-panel">
           <form id="instruction-form">
             <label for="instruction-input">Print instructions</label>
@@ -23,10 +24,18 @@
               placeholder="Example: Print 3 copies, black and white, double sided on letter paper in landscape."
             ></textarea>
 
-            <button type="submit">Generate Settings</button>
+            <button type="submit" class="primary">Generate Settings</button>
+            <button type="button" id="save-button" class="secondary">Save Settings</button>
           </form>
+
+          <!-- Saved Settings List -->
+          <div class="saved-section">
+            <h3>Saved Settings</h3>
+            <ul id="saved-settings" class="settings-list"></ul>
+          </div>
         </section>
 
+        <!-- GENERATED SETTINGS PREVIEW -->
         <aside class="settings-panel" id="result">
           <h2>Printer Settings</h2>
           <p class="status">No instructions yet.</p>
