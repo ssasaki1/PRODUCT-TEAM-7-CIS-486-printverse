@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Smart Printer Assistant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="header">
+        <h1>Smart Printer Assistant</h1>
+        <p>Type what you want to print in natural language.</p>
+      </header>
+
+      <main class="main">
+        <!-- USER INPUT + BUTTONS -->
+        <section class="input-panel">
+          <form id="instruction-form">
+            <label for="instruction-input">Print instructions</label>
+            <textarea
+              id="instruction-input"
+              rows="5"
+              placeholder="Example: Print 3 copies, black and white, double sided on letter paper in landscape."
+            ></textarea>
+
+            <button type="submit" class="primary">Generate Settings</button>
+            <button type="button" id="save-button" class="secondary">Save Settings</button>
+          </form>
+
+          <!-- Saved Settings List -->
+          <div class="saved-section">
+            <h3>Saved Settings</h3>
+            <ul id="saved-settings" class="settings-list"></ul>
+          </div>
+        </section>
+
+        <!-- GENERATED SETTINGS PREVIEW -->
+        <aside class="settings-panel" id="result">
+          <h2>Printer Settings</h2>
+          <p class="status">No instructions yet.</p>
+          <ul id="settings-list"></ul>
+
+          <h3>Raw settings JSON</h3>
+          <pre id="raw-json">{}</pre>
+        </aside>
+      </main>
+
+      <footer class="footer">
+        <small>Foundation build — not talking to a real printer yet.</small>
+      </footer>
+    </div>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>

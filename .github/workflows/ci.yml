@@ -1,0 +1,27 @@
+<<<<<<< HEAD
+# name: CI Pipeline
+
+# on:
+#   pull_request:
+#     branches: [ main ]
+#   push:
+#     branches: [ '**' ] # This means all branches (feature branches, etc.)
+
+# jobs:
+#   build-and-test:
+#     runs-on: ${{ matrix.os }}
+#     strategy:
+#       matrix:
+#         os: [ubuntu-latest, windows-latest, macos-latest]
+
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: actions/setup-node@v4
+#         with:
+#           node-version: lates
+#       - run: npm install
+#       - run: npm run lint
+#       - run: npm test -- --ci
+=======
+TBD
+>>>>>>> d0a7a22 (WIP: changes before switching to dev)
