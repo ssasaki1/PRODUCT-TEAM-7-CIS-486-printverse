@@ -24,13 +24,94 @@
               placeholder="Example: Print 3 copies, black and white, double sided on letter paper in landscape."
             ></textarea>
 
-            <button type="submit" class="primary">Generate Settings</button>
-            <button type="button" id="save-button" class="secondary">Save Settings</button>
+            <input
+              type="text"
+              id="preset-name"
+              class="text-input"
+              placeholder="Preset name"
+            />
+
+            <div class="button-row">
+              <button type="submit" class="primary">Generate Settings</button>
+              <button type="button" id="save-button" class="secondary">
+                Save Settings
+              </button>
+              <button type="button" id="reset-button" class="secondary">
+                Reset
+              </button>
+            </div>
           </form>
+
+          <!-- Quick controls chips -->
+          <div class="quick-section">
+            <h3>Quick Settings</h3>
+
+            <div class="quick-group">
+              <span class="quick-label">Color</span>
+              <button type="button" class="chip" data-color-option="color">
+                Color
+              </button>
+              <button type="button" class="chip" data-color-option="mono">
+                B/W
+              </button>
+            </div>
+
+            <div class="quick-group">
+              <span class="quick-label">Duplex</span>
+              <button type="button" class="chip" data-duplex-option="false">
+                Single-sided
+              </button>
+              <button type="button" class="chip" data-duplex-option="true">
+                Double-sided
+              </button>
+            </div>
+
+            <div class="quick-group">
+              <span class="quick-label">Paper Size</span>
+              <button type="button" class="chip" data-size-option="A4">
+                A4
+              </button>
+              <button type="button" class="chip" data-size-option="Letter">
+                Letter
+              </button>
+              <button type="button" class="chip" data-size-option="Legal">
+                Legal
+              </button>
+            </div>
+
+            <div class="quick-group">
+              <span class="quick-label">Orientation</span>
+              <button
+                type="button"
+                class="chip"
+                data-orientation-option="portrait"
+              >
+                Portrait
+              </button>
+              <button
+                type="button"
+                class="chip"
+                data-orientation-option="landscape"
+              >
+                Landscape
+              </button>
+            </div>
+
+            <div class="quick-group">
+              <span class="quick-label">Copies</span>
+              <button type="button" class="chip" data-copies-option="1">1</button>
+              <button type="button" class="chip" data-copies-option="2">2</button>
+              <button type="button" class="chip" data-copies-option="5">5</button>
+              <button type="button" class="chip" data-copies-option="10">
+                10
+              </button>
+            </div>
+          </div>
 
           <!-- Saved Settings List -->
           <div class="saved-section">
             <h3>Saved Settings</h3>
+            <p id="saved-status" class="status small"></p>
             <ul id="saved-settings" class="settings-list"></ul>
           </div>
         </section>
@@ -43,12 +124,29 @@
 
           <h3>Raw settings JSON</h3>
           <pre id="raw-json">{}</pre>
+
+          <button id="print-button" class="primary print-button">
+            Print (Demo)
+          </button>
         </aside>
       </main>
 
       <footer class="footer">
         <small>Foundation build — not talking to a real printer yet.</small>
       </footer>
+    </div>
+
+    <!-- Demo print "popup" -->
+    <div id="print-modal" class="modal hidden">
+      <div class="modal-content">
+        <h2>Print Preview (Demo)</h2>
+        <p>This simulates a printer dialog using your current settings.</p>
+        <pre id="print-summary"></pre>
+        <div class="button-row">
+          <button id="confirm-print" class="primary">Confirm &amp; Print</button>
+          <button id="close-print-modal" class="secondary">Cancel</button>
+        </div>
+      </div>
     </div>
 
     <script src="app.js" defer></script>

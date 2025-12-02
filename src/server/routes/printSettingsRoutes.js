@@ -3,7 +3,7 @@ const PrintSetting = require("../models/PrintSetting");
 
 const router = express.Router();
 
-// POST → Save new setting
+// POST → Save new setting (max 3 per user)
 router.post("/", async (req, res) => {
   const { userId, ...settings } = req.body;
 
@@ -25,14 +25,16 @@ router.post("/", async (req, res) => {
 // GET → All settings for a user
 router.get("/:userId", async (req, res) => {
   try {
-    const settings = await PrintSetting.find({ userId: req.params.userId }).sort({ createdAt: -1 });
+    const settings = await PrintSetting.find({ userId: req.params.userId }).sort({
+      createdAt: -1,
+    });
     res.json(settings);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// ⭐ GET → Single setting by ID (Required for Apply button)
+// GET → Single setting by ID
 router.get("/item/:id", async (req, res) => {
   try {
     const setting = await PrintSetting.findById(req.params.id);
@@ -47,9 +49,26 @@ router.get("/item/:id", async (req, res) => {
   }
 });
 
-module.exports = router;
+// PUT → Update saved setting by ID
+router.put("/:id", async (req, res) => {
+  try {
+    const updated = await PrintSetting.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
 
-// 🗑️ DELETE → Remove saved setting by ID
+    if (!updated) {
+      return res.status(404).json({ error: "Setting not found" });
+    }
+
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE → Remove saved setting by ID
 router.delete("/:id", async (req, res) => {
   try {
     const deleted = await PrintSetting.findByIdAndDelete(req.params.id);
@@ -63,3 +82,5 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+module.exports = router;
