@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const confirmPrint = document.getElementById('confirm-print');
   const closePrintModal = document.getElementById('close-print-modal');
 
-  const USER_ID = 'testuser'; // for now
+  const USER_ID = 'testuser'; // TODO: replace with real user id
 
   let currentSettings = null;   // current JSON settings (generated / loaded / edited)
   let currentSettingId = null;  // which saved preset (if any) is being edited
@@ -27,6 +27,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================
   // Helpers
   // ==========================
+
+  function defaultSettings() {
+    return {
+      copies: 1,
+      color: 'color',
+      duplex: false,
+      paperSize: 'A4',
+      orientation: 'portrait',
+    };
+  }
+
+  function ensureCurrentSettings() {
+    if (!currentSettings) {
+      currentSettings = defaultSettings();
+    }
+  }
 
   function renderSettings(settings) {
     if (!settings) {
@@ -47,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     rawJsonPre.textContent = JSON.stringify(settings || {}, null, 2);
   }
 
-  // Keep textarea text in sync with currentSettings
+  // Build a natural-language sentence from currentSettings
   function updateInstructionFromSettings() {
     if (!currentSettings) return;
 
@@ -109,24 +125,67 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function autoUpdateSavedSetting() {
+    // Only auto-update if we’re editing an existing preset
     if (!currentSettingId || !currentSettings) return;
+
+    const name = presetName.value.trim() || 'Untitled preset';
+
+    const payload = {
+      userId: USER_ID,
+      name,
+      ...currentSettings,
+    };
 
     try {
       const res = await fetch(`/print-settings/${currentSettingId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(currentSettings),
+        body: JSON.stringify(payload),
       });
-      await res.json();
+      const data = await res.json();
+
       if (res.ok) {
-        savedStatus.textContent = 'Saved setting auto-updated.';
+        savedStatus.textContent = 'Changes auto-saved.';
+        currentSettingId = data._id;
         loadSavedSettings();
       } else {
-        savedStatus.textContent = 'Failed to update saved setting.';
+        savedStatus.textContent = data.error || 'Failed to auto-save.';
       }
     } catch (err) {
       console.error(err);
-      savedStatus.textContent = 'Error updating saved setting.';
+      savedStatus.textContent = 'Error auto-saving setting.';
+    }
+  }
+
+  // Re-parse the textarea into settings (used before saving)
+  async function syncSettingsFromText() {
+    const text = input.value.trim();
+    if (!text) return false; // nothing to sync
+
+    try {
+      status.textContent = 'Updating settings from text...';
+
+      const response = await fetch('/api/parse-instructions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Something went wrong');
+
+      currentSettings = data.settings;
+      renderSettings(currentSettings);
+      renderRawJson(currentSettings);
+      updateChipStates();
+      // Do NOT call updateInstructionFromSettings() here;
+      // we don't want to overwrite the user's text.
+      status.textContent = 'Settings synced from text.';
+      return true;
+    } catch (err) {
+      console.error(err);
+      status.textContent = `Error syncing from text: ${err.message}`;
+      return false;
     }
   }
 
@@ -146,9 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
     status.textContent = 'Understanding your request...';
     settingsList.innerHTML = '';
     rawJsonPre.textContent = '{}';
-    currentSettings = null;
-    currentSettingId = null;
-    updateChipStates();
 
     try {
       const response = await fetch('/api/parse-instructions', {
@@ -163,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const s = data.settings;
 
       currentSettings = s;
-      currentSettingId = null;
+      // NOTE: if we were editing a preset, we keep currentSettingId
       renderSettings(s);
       renderRawJson(s);
       updateChipStates();
@@ -196,9 +252,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================
 
   document.addEventListener('click', (e) => {
-    if (!currentSettings) return;
-
     let changed = false;
+
+    // Allow chips even when nothing has been generated yet
+    if (
+      e.target.matches('[data-color-option]') ||
+      e.target.matches('[data-duplex-option]') ||
+      e.target.matches('[data-size-option]') ||
+      e.target.matches('[data-orientation-option]') ||
+      e.target.matches('[data-copies-option]')
+    ) {
+      ensureCurrentSettings();
+    }
 
     if (e.target.matches('[data-color-option]')) {
       currentSettings.color = e.target.getAttribute('data-color-option');
@@ -239,12 +304,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================
-  // Save Settings to DB
+  // Save / Update Settings
   // ==========================
 
   saveButton.addEventListener('click', async () => {
-    if (!currentSettings) {
-      savedStatus.textContent = 'Generate or load settings first.';
+    // 1) Sync JSON from whatever is in the textarea (covers manual edits)
+    const synced = await syncSettingsFromText();
+
+    if (!synced && !currentSettings) {
+      savedStatus.textContent = 'Generate, load, or type instructions first.';
       return;
     }
 
@@ -261,17 +329,30 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     try {
-      const response = await fetch('/print-settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      let response;
+      let data;
 
-      const data = await response.json();
+      if (currentSettingId) {
+        // UPDATE existing preset
+        response = await fetch(`/print-settings/${currentSettingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        // CREATE new preset
+        response = await fetch('/print-settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to save');
 
-      savedStatus.textContent = 'Saved successfully.';
       currentSettingId = data._id;
+      savedStatus.textContent = 'Preset saved / updated.';
       loadSavedSettings();
     } catch (err) {
       console.error(err);
@@ -303,6 +384,10 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         savedList.appendChild(li);
       });
+
+      if (!data.length) {
+        savedStatus.textContent = 'No presets yet. Create one using Save Settings.';
+      }
     } catch (err) {
       console.error(err);
       savedStatus.textContent = 'Failed to load saved settings.';
@@ -314,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================
 
   document.addEventListener('click', async (e) => {
-    // DISPLAY
+    // DISPLAY (read-only)
     if (e.target.classList.contains('display')) {
       const id = e.target.getAttribute('data-id');
       const response = await fetch(`/print-settings/item/${id}`);
@@ -327,7 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
         paperSize: data.paperSize,
         orientation: data.orientation,
       };
-      currentSettingId = id;
+      currentSettingId = null; // display is read-only
       presetName.value = data.name || '';
 
       renderSettings(currentSettings);
@@ -337,7 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
       status.textContent = 'Displaying saved setting.';
     }
 
-    // APPLY
+    // APPLY (load and keep live)
     if (e.target.classList.contains('apply')) {
       const id = e.target.getAttribute('data-id');
       const response = await fetch(`/print-settings/item/${id}`);
@@ -360,7 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
       status.textContent = 'Loaded saved setting.';
     }
 
-    // EDIT
+    // EDIT (load + mark as editing)
     if (e.target.classList.contains('edit')) {
       const id = e.target.getAttribute('data-id');
       const response = await fetch(`/print-settings/item/${id}`);
@@ -380,7 +465,8 @@ document.addEventListener('DOMContentLoaded', () => {
       renderRawJson(currentSettings);
       updateChipStates();
       updateInstructionFromSettings();
-      status.textContent = 'Editing saved setting. Changes will auto-save.';
+      status.textContent = 'Editing saved setting. Changes will auto-save or you can press Save Settings.';
+      savedStatus.textContent = '';
     }
 
     // DELETE
@@ -389,7 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       try {
         const response = await fetch(`/print-settings/${id}`, { method: 'DELETE' });
-        await response.json();
+        const data = await response.json();
 
         if (response.ok) {
           savedStatus.textContent = 'Deleted successfully.';
@@ -398,7 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           loadSavedSettings();
         } else {
-          savedStatus.textContent = 'Error deleting setting.';
+          savedStatus.textContent = data.error || 'Error deleting setting.';
         }
       } catch (err) {
         console.error(err);
