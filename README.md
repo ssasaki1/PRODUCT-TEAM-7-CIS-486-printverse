@@ -29,5 +29,5 @@ Future enhancements including voice input, AI command understanding, previews, d
 ## Tech Stack  
 React • Node.js • MongoDB • OpenAI API • PM2 • Nginx • GCP VM • GitHub Actions
 
-##License
+## License
 MIT License
