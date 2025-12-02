@@ -3,19 +3,34 @@ const PrintSetting = require("../models/PrintSetting");
 
 const router = express.Router();
 
-// POST → Save new setting (max 3 per user)
+// POST → Create or upsert a setting (max 3 per user)
 router.post("/", async (req, res) => {
-  const { userId, ...settings } = req.body;
+  const { userId, name, ...settings } = req.body;
+
+  if (!userId || !name) {
+    return res.status(400).json({ error: "userId and name are required" });
+  }
 
   try {
-    const existing = await PrintSetting.find({ userId }).sort({ createdAt: -1 });
+    // If this user already has a preset with this name, update it instead of duplicating
+    let existingWithName = await PrintSetting.findOne({ userId, name });
 
-    // Limit saved settings to max 3 items
+    if (existingWithName) {
+      const updated = await PrintSetting.findByIdAndUpdate(
+        existingWithName._id,
+        { userId, name, ...settings },
+        { new: true }
+      );
+      return res.json(updated);
+    }
+
+    // Enforce max 3 presets per user
+    const existing = await PrintSetting.find({ userId }).sort({ createdAt: -1 });
     if (existing.length >= 3) {
       await PrintSetting.findByIdAndDelete(existing[existing.length - 1]._id);
     }
 
-    const saved = await PrintSetting.create({ userId, ...settings });
+    const saved = await PrintSetting.create({ userId, name, ...settings });
     res.json(saved);
   } catch (err) {
     res.status(500).json({ error: err.message });
