@@ -19,10 +19,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const confirmPrint = document.getElementById('confirm-print');
   const closePrintModal = document.getElementById('close-print-modal');
 
-  const USER_ID = 'testuser'; // placeholder until auth
+  const USER_ID = 'testuser'; // for now
 
-  let currentSettings = null;       // latest generated or loaded
-  let currentSettingId = null;      // which saved setting is being edited
+  let currentSettings = null;   // current JSON settings (generated / loaded / edited)
+  let currentSettingId = null;  // which saved preset (if any) is being edited
 
   // ==========================
   // Helpers
@@ -45,6 +45,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderRawJson(settings) {
     rawJsonPre.textContent = JSON.stringify(settings || {}, null, 2);
+  }
+
+  // Keep textarea text in sync with currentSettings
+  function updateInstructionFromSettings() {
+    if (!currentSettings) return;
+
+    const copiesText = currentSettings.copies ? `${currentSettings.copies} copies` : '';
+    const colorText = currentSettings.color === 'mono' ? 'black and white' : 'color';
+    const duplexText = currentSettings.duplex ? 'double sided' : 'single sided';
+    const sizeText = currentSettings.paperSize || '';
+    const orientText = currentSettings.orientation || '';
+
+    let sentence = `Print ${copiesText}, ${colorText}, ${duplexText}, ${sizeText}, ${orientText}.`;
+    sentence = sentence
+      .replace(/\s+,/g, ',')
+      .replace(/,\s+\./g, '.')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    input.value = sentence;
   }
 
   function updateChipStates() {
@@ -97,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(currentSettings),
       });
-      await res.json(); // not really used
+      await res.json();
       if (res.ok) {
         savedStatus.textContent = 'Saved setting auto-updated.';
         loadSavedSettings();
@@ -111,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================
-  // Generate Printer Settings
+  // Generate Printer Settings (AI)
   // ==========================
 
   form.addEventListener('submit', async (event) => {
@@ -147,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderSettings(s);
       renderRawJson(s);
       updateChipStates();
+      updateInstructionFromSettings(); // keep textarea synced with JSON
       status.textContent = 'Settings generated successfully.';
     } catch (err) {
       console.error(err);
@@ -211,8 +232,9 @@ document.addEventListener('DOMContentLoaded', () => {
       renderSettings(currentSettings);
       renderRawJson(currentSettings);
       updateChipStates();
+      updateInstructionFromSettings(); // update textarea too
       status.textContent = 'Settings updated manually.';
-      autoUpdateSavedSetting();
+      autoUpdateSavedSetting();        // if editing a saved preset, push to DB
     }
   });
 
@@ -311,10 +333,11 @@ document.addEventListener('DOMContentLoaded', () => {
       renderSettings(currentSettings);
       renderRawJson(currentSettings);
       updateChipStates();
+      updateInstructionFromSettings();
       status.textContent = 'Displaying saved setting.';
     }
 
-    // APPLY (same as display but different message)
+    // APPLY
     if (e.target.classList.contains('apply')) {
       const id = e.target.getAttribute('data-id');
       const response = await fetch(`/print-settings/item/${id}`);
@@ -333,6 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderSettings(currentSettings);
       renderRawJson(currentSettings);
       updateChipStates();
+      updateInstructionFromSettings();
       status.textContent = 'Loaded saved setting.';
     }
 
@@ -352,16 +376,10 @@ document.addEventListener('DOMContentLoaded', () => {
       currentSettingId = id;
       presetName.value = data.name || '';
 
-      // Generate a simple NL description into the textarea
-      input.value = `Print ${currentSettings.copies || ''} copies, ${
-        currentSettings.color === 'mono' ? 'black and white' : 'color'
-      }, ${currentSettings.duplex ? 'double sided' : 'single sided'}, ${
-        currentSettings.paperSize || ''
-      }, ${currentSettings.orientation || ''}.`;
-
       renderSettings(currentSettings);
       renderRawJson(currentSettings);
       updateChipStates();
+      updateInstructionFromSettings();
       status.textContent = 'Editing saved setting. Changes will auto-save.';
     }
 
