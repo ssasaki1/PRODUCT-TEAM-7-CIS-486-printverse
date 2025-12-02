@@ -1,18 +1,119 @@
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('instruction-form');
   const input = document.getElementById('instruction-input');
+  const presetName = document.getElementById('preset-name');
+  const resetButton = document.getElementById('reset-button');
+
   const resultPanel = document.getElementById('result');
   const settingsList = document.getElementById('settings-list');
   const rawJsonPre = document.getElementById('raw-json');
   const status = resultPanel.querySelector('.status');
+
   const saveButton = document.getElementById('save-button');
   const savedList = document.getElementById('saved-settings');
+  const savedStatus = document.getElementById('saved-status');
 
-  const USER_ID = "testuser"; // TODO: Replace once login exists
+  const printButton = document.getElementById('print-button');
+  const printModal = document.getElementById('print-modal');
+  const printSummary = document.getElementById('print-summary');
+  const confirmPrint = document.getElementById('confirm-print');
+  const closePrintModal = document.getElementById('close-print-modal');
+
+  const USER_ID = 'testuser'; // placeholder until auth
+
+  let currentSettings = null;       // latest generated or loaded
+  let currentSettingId = null;      // which saved setting is being edited
+
+  // ==========================
+  // Helpers
+  // ==========================
+
+  function renderSettings(settings) {
+    if (!settings) {
+      settingsList.innerHTML = '';
+      return;
+    }
+
+    settingsList.innerHTML = `
+      <li><strong>Copies:</strong> ${settings.copies ?? '-'}</li>
+      <li><strong>Color mode:</strong> ${settings.color ?? '-'}</li>
+      <li><strong>Duplex:</strong> ${settings.duplex ? 'Yes' : 'No'}</li>
+      <li><strong>Paper size:</strong> ${settings.paperSize ?? '-'}</li>
+      <li><strong>Orientation:</strong> ${settings.orientation ?? '-'}</li>
+    `;
+  }
+
+  function renderRawJson(settings) {
+    rawJsonPre.textContent = JSON.stringify(settings || {}, null, 2);
+  }
+
+  function updateChipStates() {
+    const colorChips = document.querySelectorAll('[data-color-option]');
+    colorChips.forEach((btn) => {
+      btn.classList.toggle(
+        'active',
+        currentSettings && currentSettings.color === btn.getAttribute('data-color-option')
+      );
+    });
+
+    const duplexChips = document.querySelectorAll('[data-duplex-option]');
+    duplexChips.forEach((btn) => {
+      const val = btn.getAttribute('data-duplex-option') === 'true';
+      btn.classList.toggle('active', currentSettings && currentSettings.duplex === val);
+    });
+
+    const sizeChips = document.querySelectorAll('[data-size-option]');
+    sizeChips.forEach((btn) => {
+      btn.classList.toggle(
+        'active',
+        currentSettings && currentSettings.paperSize === btn.getAttribute('data-size-option')
+      );
+    });
+
+    const orientationChips = document.querySelectorAll('[data-orientation-option]');
+    orientationChips.forEach((btn) => {
+      btn.classList.toggle(
+        'active',
+        currentSettings && currentSettings.orientation === btn.getAttribute('data-orientation-option')
+      );
+    });
+
+    const copiesChips = document.querySelectorAll('[data-copies-option]');
+    copiesChips.forEach((btn) => {
+      const val = parseInt(btn.getAttribute('data-copies-option'), 10);
+      btn.classList.toggle(
+        'active',
+        currentSettings && Number(currentSettings.copies) === val
+      );
+    });
+  }
+
+  async function autoUpdateSavedSetting() {
+    if (!currentSettingId || !currentSettings) return;
+
+    try {
+      const res = await fetch(`/print-settings/${currentSettingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentSettings),
+      });
+      await res.json(); // not really used
+      if (res.ok) {
+        savedStatus.textContent = 'Saved setting auto-updated.';
+        loadSavedSettings();
+      } else {
+        savedStatus.textContent = 'Failed to update saved setting.';
+      }
+    } catch (err) {
+      console.error(err);
+      savedStatus.textContent = 'Error updating saved setting.';
+    }
+  }
 
   // ==========================
   // Generate Printer Settings
   // ==========================
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
 
@@ -25,6 +126,9 @@ document.addEventListener('DOMContentLoaded', () => {
     status.textContent = 'Understanding your request...';
     settingsList.innerHTML = '';
     rawJsonPre.textContent = '{}';
+    currentSettings = null;
+    currentSettingId = null;
+    updateChipStates();
 
     try {
       const response = await fetch('/api/parse-instructions', {
@@ -38,15 +142,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const s = data.settings;
 
-      settingsList.innerHTML = `
-        <li><strong>Copies:</strong> ${s.copies}</li>
-        <li><strong>Color mode:</strong> ${s.color}</li>
-        <li><strong>Duplex:</strong> ${s.duplex ? 'Yes' : 'No'}</li>
-        <li><strong>Paper size:</strong> ${s.paperSize}</li>
-        <li><strong>Orientation:</strong> ${s.orientation}</li>
-      `;
-
-      rawJsonPre.textContent = JSON.stringify(s, null, 2);
+      currentSettings = s;
+      currentSettingId = null;
+      renderSettings(s);
+      renderRawJson(s);
+      updateChipStates();
       status.textContent = 'Settings generated successfully.';
     } catch (err) {
       console.error(err);
@@ -55,22 +155,87 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================
+  // Reset
+  // ==========================
+
+  resetButton.addEventListener('click', () => {
+    input.value = '';
+    presetName.value = '';
+    currentSettings = null;
+    currentSettingId = null;
+    settingsList.innerHTML = '';
+    rawJsonPre.textContent = '{}';
+    updateChipStates();
+    status.textContent = 'Reset complete.';
+    savedStatus.textContent = '';
+  });
+
+  // ==========================
+  // Quick Settings Chips
+  // ==========================
+
+  document.addEventListener('click', (e) => {
+    if (!currentSettings) return;
+
+    let changed = false;
+
+    if (e.target.matches('[data-color-option]')) {
+      currentSettings.color = e.target.getAttribute('data-color-option');
+      changed = true;
+    }
+
+    if (e.target.matches('[data-duplex-option]')) {
+      currentSettings.duplex = e.target.getAttribute('data-duplex-option') === 'true';
+      changed = true;
+    }
+
+    if (e.target.matches('[data-size-option]')) {
+      currentSettings.paperSize = e.target.getAttribute('data-size-option');
+      changed = true;
+    }
+
+    if (e.target.matches('[data-orientation-option]')) {
+      currentSettings.orientation = e.target.getAttribute('data-orientation-option');
+      changed = true;
+    }
+
+    if (e.target.matches('[data-copies-option]')) {
+      currentSettings.copies = parseInt(
+        e.target.getAttribute('data-copies-option'),
+        10
+      );
+      changed = true;
+    }
+
+    if (changed) {
+      renderSettings(currentSettings);
+      renderRawJson(currentSettings);
+      updateChipStates();
+      status.textContent = 'Settings updated manually.';
+      autoUpdateSavedSetting();
+    }
+  });
+
+  // ==========================
   // Save Settings to DB
   // ==========================
-  saveButton.addEventListener('click', async () => {
-    const rawSettings = rawJsonPre.textContent;
 
-    if (rawSettings === '{}' || !rawSettings.trim()) {
-      alert('Generate settings first.');
+  saveButton.addEventListener('click', async () => {
+    if (!currentSettings) {
+      savedStatus.textContent = 'Generate or load settings first.';
       return;
     }
 
-    const parsed = JSON.parse(rawSettings);
+    const name = presetName.value.trim();
+    if (!name) {
+      savedStatus.textContent = 'Please enter a name for this setting.';
+      return;
+    }
 
     const payload = {
       userId: USER_ID,
-      name: `Setting - ${new Date().toLocaleTimeString()}`,
-      ...parsed
+      name,
+      ...currentSettings,
     };
 
     try {
@@ -81,19 +246,21 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
+      if (!response.ok) throw new Error(data.error || 'Failed to save');
 
-      alert('Saved successfully!');
+      savedStatus.textContent = 'Saved successfully.';
+      currentSettingId = data._id;
       loadSavedSettings();
     } catch (err) {
       console.error(err);
-      alert('Failed to save.');
+      savedStatus.textContent = 'Failed to save settings.';
     }
   });
 
   // ==========================
   // Load Saved Settings
   // ==========================
+
   async function loadSavedSettings() {
     try {
       const response = await fetch(`/print-settings/${USER_ID}`);
@@ -101,67 +268,150 @@ document.addEventListener('DOMContentLoaded', () => {
 
       savedList.innerHTML = '';
 
-      data.forEach(setting => {
+      data.forEach((setting) => {
         const li = document.createElement('li');
         li.innerHTML = `
-          ${setting.name} 
-          <button data-id="${setting._id}" class="apply">Apply</button>
-          <button data-id="${setting._id}" class="delete">Delete</button>
+          ${setting.name}
+          <span class="saved-settings-actions">
+            <button data-id="${setting._id}" class="display">Display</button>
+            <button data-id="${setting._id}" class="apply">Apply</button>
+            <button data-id="${setting._id}" class="edit">Edit</button>
+            <button data-id="${setting._id}" class="delete">Delete</button>
+          </span>
         `;
         savedList.appendChild(li);
       });
     } catch (err) {
       console.error(err);
+      savedStatus.textContent = 'Failed to load saved settings.';
     }
   }
 
   // ==========================
-  // Apply & Delete Handler
+  // Apply / Display / Edit / Delete
   // ==========================
+
   document.addEventListener('click', async (e) => {
-
-    // ▶ APPLY Setting
-    if (e.target.classList.contains('apply')) {
+    // DISPLAY
+    if (e.target.classList.contains('display')) {
       const id = e.target.getAttribute('data-id');
-
       const response = await fetch(`/print-settings/item/${id}`);
       const data = await response.json();
 
-      settingsList.innerHTML = `
-        <li><strong>Copies:</strong> ${data.copies}</li>
-        <li><strong>Color mode:</strong> ${data.color}</li>
-        <li><strong>Duplex:</strong> ${data.duplex ? 'Yes' : 'No'}</li>
-        <li><strong>Paper size:</strong> ${data.paperSize}</li>
-        <li><strong>Orientation:</strong> ${data.orientation}</li>
-      `;
+      currentSettings = {
+        copies: data.copies,
+        color: data.color,
+        duplex: data.duplex,
+        paperSize: data.paperSize,
+        orientation: data.orientation,
+      };
+      currentSettingId = id;
+      presetName.value = data.name || '';
 
-      rawJsonPre.textContent = JSON.stringify(data, null, 2);
+      renderSettings(currentSettings);
+      renderRawJson(currentSettings);
+      updateChipStates();
+      status.textContent = 'Displaying saved setting.';
+    }
+
+    // APPLY (same as display but different message)
+    if (e.target.classList.contains('apply')) {
+      const id = e.target.getAttribute('data-id');
+      const response = await fetch(`/print-settings/item/${id}`);
+      const data = await response.json();
+
+      currentSettings = {
+        copies: data.copies,
+        color: data.color,
+        duplex: data.duplex,
+        paperSize: data.paperSize,
+        orientation: data.orientation,
+      };
+      currentSettingId = id;
+      presetName.value = data.name || '';
+
+      renderSettings(currentSettings);
+      renderRawJson(currentSettings);
+      updateChipStates();
       status.textContent = 'Loaded saved setting.';
     }
 
-    // DELETE Setting
+    // EDIT
+    if (e.target.classList.contains('edit')) {
+      const id = e.target.getAttribute('data-id');
+      const response = await fetch(`/print-settings/item/${id}`);
+      const data = await response.json();
+
+      currentSettings = {
+        copies: data.copies,
+        color: data.color,
+        duplex: data.duplex,
+        paperSize: data.paperSize,
+        orientation: data.orientation,
+      };
+      currentSettingId = id;
+      presetName.value = data.name || '';
+
+      // Generate a simple NL description into the textarea
+      input.value = `Print ${currentSettings.copies || ''} copies, ${
+        currentSettings.color === 'mono' ? 'black and white' : 'color'
+      }, ${currentSettings.duplex ? 'double sided' : 'single sided'}, ${
+        currentSettings.paperSize || ''
+      }, ${currentSettings.orientation || ''}.`;
+
+      renderSettings(currentSettings);
+      renderRawJson(currentSettings);
+      updateChipStates();
+      status.textContent = 'Editing saved setting. Changes will auto-save.';
+    }
+
+    // DELETE
     if (e.target.classList.contains('delete')) {
       const id = e.target.getAttribute('data-id');
 
-      if (!confirm("Delete this saved setting?")) return;
-
       try {
         const response = await fetch(`/print-settings/${id}`, { method: 'DELETE' });
-        const result = await response.json();
+        await response.json();
 
         if (response.ok) {
-          alert('Deleted successfully');
+          savedStatus.textContent = 'Deleted successfully.';
+          if (currentSettingId === id) {
+            currentSettingId = null;
+          }
           loadSavedSettings();
         } else {
-          alert('Error: ' + result.error);
+          savedStatus.textContent = 'Error deleting setting.';
         }
       } catch (err) {
         console.error(err);
-        alert('Failed to delete');
+        savedStatus.textContent = 'Failed to delete setting.';
       }
     }
   });
 
-  // Auto-load saved settings on startup
+  // ==========================
+  // Print Demo Modal
+  // ==========================
+
+  printButton.addEventListener('click', () => {
+    if (!currentSettings) {
+      status.textContent = 'Generate or load settings before printing.';
+      return;
+    }
+
+    printSummary.textContent = JSON.stringify(currentSettings, null, 2);
+    printModal.classList.remove('hidden');
+  });
+
+  closePrintModal.addEventListener('click', () => {
+    printModal.classList.add('hidden');
+  });
+
+  confirmPrint.addEventListener('click', () => {
+    printModal.classList.add('hidden');
+    window.print(); // real browser print dialog
+  });
+
+  // Initial load
   loadSavedSettings();
 });
