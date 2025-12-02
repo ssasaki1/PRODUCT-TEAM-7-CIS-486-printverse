@@ -457,3 +457,21 @@ pre {
 .modal-buttons {
   justify-content: flex-end;
 }
+
+.user-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.user-bar #user-label {
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+button.small {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
