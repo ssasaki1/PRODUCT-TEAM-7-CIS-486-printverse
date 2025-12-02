@@ -18,6 +18,12 @@
             <p class="tagline">AI-powered smart printer assistant</p>
           </div>
         </div>
+
+        <div class="user-bar">
+          <span id="user-label"></span>
+          <button id="logout-button" class="ghost small">Logout</button>
+        </div>
+        
         <p class="header-subtext">
           Type what you want to print in natural language. Tweak settings with quick controls.
           Save presets for your favorite printer configurations.
@@ -165,6 +171,13 @@
         </div>
       </div>
     </div>
+
+    <script>
+      const user = localStorage.getItem("printverseUser");
+      if (!user) {
+        window.location.href = "login.html";
+      }
+    </script>
 
     <script src="app.js" defer></script>
   </body>

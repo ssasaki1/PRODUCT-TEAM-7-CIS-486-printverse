@@ -1,3 +1,17 @@
+//  USER AUTH CONTROL
+
+// Check if logged in user exists
+let currentUser = JSON.parse(localStorage.getItem("printverseUser")) || null;
+
+// If nobody logged in, redirect to login page
+if (!currentUser) {
+  window.location.href = "login.html";
+}
+
+// Extract real ID for use in API calls
+const USER_ID = currentUser.id;
+
+
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('instruction-form');
   const input = document.getElementById('instruction-input');
@@ -518,4 +532,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initial load
   loadSavedSettings();
+});
+
+// ==========================
+// Logout
+// ==========================
+const logoutButton = document.getElementById("logout-button");
+const userLabel = document.getElementById("user-label");
+
+if (currentUser && userLabel) {
+  userLabel.textContent = `Logged in as: ${currentUser.username}`;
+}
+
+logoutButton?.addEventListener("click", () => {
+  localStorage.removeItem("printverseUser");
+  window.location.href = "login.html";
 });
