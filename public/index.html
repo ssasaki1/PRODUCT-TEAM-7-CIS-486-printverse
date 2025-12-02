@@ -2,15 +2,26 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Smart Printer Assistant</title>
+    <title>PrintVerse – Smart Printer Assistant</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <div class="gradient-bg"></div>
+
     <div class="page">
       <header class="header">
-        <h1>Smart Printer Assistant</h1>
-        <p>Type what you want to print in natural language.</p>
+        <div class="header-top">
+          <div class="logo-mark">P</div>
+          <div class="header-text">
+            <h1>Printverse</h1>
+            <p class="tagline">AI-powered smart printer assistant</p>
+          </div>
+        </div>
+        <p class="header-subtext">
+          Type what you want to print in natural language. Tweak settings with quick controls.
+          Save presets for your favorite printer configurations.
+        </p>
       </header>
 
       <main class="main">
@@ -28,7 +39,7 @@
               type="text"
               id="preset-name"
               class="text-input"
-              placeholder="Preset name"
+              placeholder="Preset name (e.g. 'Reports A4 Mono')"
             />
 
             <div class="button-row">
@@ -36,7 +47,7 @@
               <button type="button" id="save-button" class="secondary">
                 Save Settings
               </button>
-              <button type="button" id="reset-button" class="secondary">
+              <button type="button" id="reset-button" class="ghost">
                 Reset
               </button>
             </div>
@@ -59,15 +70,15 @@
             <div class="quick-group">
               <span class="quick-label">Duplex</span>
               <button type="button" class="chip" data-duplex-option="false">
-                Single-sided
+                Single
               </button>
               <button type="button" class="chip" data-duplex-option="true">
-                Double-sided
+                Double
               </button>
             </div>
 
             <div class="quick-group">
-              <span class="quick-label">Paper Size</span>
+              <span class="quick-label">Paper</span>
               <button type="button" class="chip" data-size-option="A4">
                 A4
               </button>
@@ -110,7 +121,10 @@
 
           <!-- Saved Settings List -->
           <div class="saved-section">
-            <h3>Saved Settings</h3>
+            <div class="section-heading">
+              <h3>Saved Presets</h3>
+              <span class="badge">Max 3</span>
+            </div>
             <p id="saved-status" class="status small"></p>
             <ul id="saved-settings" class="settings-list"></ul>
           </div>
@@ -118,8 +132,11 @@
 
         <!-- GENERATED SETTINGS PREVIEW -->
         <aside class="settings-panel" id="result">
-          <h2>Printer Settings</h2>
-          <p class="status">No instructions yet.</p>
+          <div class="panel-header">
+            <h2>Current Printer Settings</h2>
+            <p class="status">Start by typing or using Quick Settings.</p>
+          </div>
+
           <ul id="settings-list"></ul>
 
           <h3>Raw settings JSON</h3>
@@ -132,7 +149,7 @@
       </main>
 
       <footer class="footer">
-        <small>Foundation build — not talking to a real printer yet.</small>
+        <small>Printverse · Prototype · Does not send jobs to a real printer (yet).</small>
       </footer>
     </div>
 
@@ -142,7 +159,7 @@
         <h2>Print Preview (Demo)</h2>
         <p>This simulates a printer dialog using your current settings.</p>
         <pre id="print-summary"></pre>
-        <div class="button-row">
+        <div class="button-row modal-buttons">
           <button id="confirm-print" class="primary">Confirm &amp; Print</button>
           <button id="close-print-modal" class="secondary">Cancel</button>
         </div>
