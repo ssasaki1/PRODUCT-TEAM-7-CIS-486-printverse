@@ -1,109 +1,107 @@
-# Printverse 🖨️ - Type it, Print it
+<!-- PROJECT BANNER -->
+<p align="center">
+  <img src="https://svg-banners.vercel.app/api?type=glitch&text1=PRINTVERSE&text2=Natural-Language%20Printing&width=1000&height=300" alt="Printverse Banner"/>
+</p>
+
+<p align="center">
+  <strong>Natural-language printing, simplified.</strong><br>
+  Type instructions like “print 10 pages double-sided” and Printverse generates the configuration automatically.
+</p>
+
+<p align="center">
+  <a href="https://www.print-verse.com"><b>Live Website</b></a>
+</p>
+
+---
 
 ## BLUF (Bottom Line Up Front)
-**Printverse** is a full-stack MERN web app that lets users type simple, natural language instructions (like "print 10 pages double-sided grayscale") to instantly configure printer settings.  
-It automates tedious print configuration, reducing time-to-ready and repetitive clicks.
-
-- **Who:** College students, professionals, and office users who print often and want efficiency
-- **Value:** One-command printing, automation, and personalized presets save time every session
-- **Primary Metric:** Median Time-To-Ready-To-Print (TTRP) ≤ 5 seconds
+Printverse is a full-stack MERN application that interprets natural-language printing instructions and converts them into structured print settings.  
+It reduces time, removes repetitive configuration steps, and simplifies printing for students and teams.  
+Fully deployed on a Google Cloud Platform VM with a custom domain and CI/CD pipeline.
 
 ---
 
-## Product Overview
+## Navigation
+<p align="center">
 
-**Vision:** Make printing effortless with natural language and AI-powered configuration.
+<a href="https://github.com/ssasaki1/PRODUCT-TEAM-7-CIS-486-printverse/wiki/Proposal"><b>Proposal</b></a> |
+<a href="https://github.com/ssasaki1/PRODUCT-TEAM-7-CIS-486-printverse/wiki/System%E2%80%90Design"><b>System Design</b></a> |
+<a href="https://github.com/ssasaki1/PRODUCT-TEAM-7-CIS-486-printverse/wiki/Value%E2%80%90Chain"><b>Value Chain</b></a> |
+<a href="https://github.com/ssasaki1/PRODUCT-TEAM-7-CIS-486-printverse/wiki/Process"><b>Process</b></a> |
+<a href="https://github.com/ssasaki1/PRODUCT-TEAM-7-CIS-486-printverse/wiki/Project-Board-Overview"><b>Project Board</b></a> |
+<a href="https://github.com/ssasaki1/PRODUCT-TEAM-7-CIS-486-printverse/wiki/Sprint99"><b>Future Scope</b></a>
 
-**Problem:** Manual printer setup is slow, full of confusing menus, and wastes time for frequent users.
-
-**Solution:** Parse any user sentence, apply the best print settings, show immediate preview, and reuse preferred presets—no tech skills needed!
-
-**Features:**
-- Natural language parser for print instructions
-- Preset recognition for quick recall
-- Live configuration preview
-- AI/ML-powered suggestions
-- Usage analytics dashboard
+</p>
 
 ---
 
-## Canonical User Story
-
-> As a busy user, I want to type a plain-English sentence like "print 10 pages double-sided grayscale" and have all print settings applied instantly, so I don’t have to click through multiple menu options.
-
-### Minimum Acceptance Criteria (Gherkin)
-Feature: Sentence to print configuration
-Scenario: Parse print settings
-Given I am logged in
-When I type "double-sided grayscale 10 pages"
-Then I see the correct print preview
-And setup time ≤ 5 seconds
-
-text
+## Features
+- Natural-language instruction parsing  
+- User authentication and personalized presets  
+- CRUD operations for print configurations  
+- Clean React interface for editing and managing settings  
+- OpenAI-powered parsing demonstration  
+- GCP VM deployment with custom domain  
+- CI/CD via GitHub Actions  
+- Modular backend architecture (routes, models, services)
 
 ---
 
-## Quick Start
+## Architecture
 
-To get started fast, run these commands from your project root:
+### Frontend
+- React  
+- State management with hooks  
+- REST API communication  
+- Clean minimal UI  
 
-- pnpm i
-- cp .env.example .env
-- pnpm dev
+### Backend
+- Node.js / Express  
+- JWT authentication  
+- Mongoose models  
+- Modular routing and controllers  
 
----
+### NLP Layer
+- OpenAI API used to test and evaluate command parsing logic  
 
-## Documentation & Reference Links
-
-- [Product Proposal](docs/product/proposal.md)
-- [System Design](docs/product/system-design.md)
-- [Value Chain Analysis](docs/product/value-chain.md)
-- [API Specification (OpenAPI)](api/openapi.yaml)
-- [Team Roster](docs/process/TEAM.md)
-- [Dev Process](docs/process/PROCESS.md)
-- [Security & Ethics](docs/process/security.md)
-- [Screenshots](docs/screenshots/) *(see mockups & interface designs)*
-- Staging Deployment: *(add URL when deployed)*
-- Production Deployment: *(add URL when deployed)*
-- Wiki & Project Board: *(add URL when ready)*
-
----
-
-## Contribution & Development
-
-- No direct pushes to main.
-- All changes tracked via Issues and Pull Requests (PRs).
-- Code review required before merge.
-- Issue labels: DEV, SECURITY, NLP, UI, MEETING
-
----
-
-## How Printverse Creates Value
-
-- **Reduces friction and setup time:** measurable TTRP reduction
-- **Prevents repetitive configuration:** tacit preferences become reusable presets
-- **Promotes accessibility and privacy:** a11y checklist, minimal data retention, pseudonyms
+### Infrastructure / Deployment
+- Google Cloud Platform (Compute Engine VM)  
+- Nginx reverse proxy  
+- PM2 process manager  
+- GitHub Actions CI/CD pipeline  
+- Custom domain (print-verse.com) via DNS A-record mapping  
 
 ---
 
 ## Tech Stack
+<p align="center">
 
-| Layer      | Framework/Service      |
-|------------|-----------------------|
-| Frontend   | React                 |
-| Backend    | Node.js + Express     |
-| Database   | MongoDB               |
-| NLP        | Custom service        |
-| CI/CD      | GitHub Actions        |
-| Staging    | Render                |
-| Production | Google Cloud Platform |
+<img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB"/>
+<img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white"/>
+<img src="https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white"/>
+<img src="https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white"/>
+<img src="https://img.shields.io/badge/OpenAI_API-412991?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white"/>
+<img src="https://img.shields.io/badge/PM2-2F93E0?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/GCP_Compute_Engine-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white"/>
+<img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white"/>
+
+</p>
+
+---
+
+## How It Works
+Printverse uses a React interface where users type instructions.  
+The backend parses them (OpenAI for initial testing), stores settings in MongoDB, and allows editing or saving presets.  
+The GCP VM hosts both the client and server using Nginx and PM2 for production reliability.
 
 ---
 
-## Team & Contact
-
-Meet our team ([see TEAM.md](docs/process/TEAM.md))
-
-Want to contribute or give feedback? Open an Issue on this repo.
+## Value Delivered
+Printverse reduces the cognitive load and time wasted on printer setting menus by enabling users to write their intent in plain English.  
+It introduces speed, accessibility, automation, and consistency to the printing workflow.
 
 ---
+
+## Team
+Garvit | Prayanshu | Shun | Barry Cumbie  
